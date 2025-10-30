@@ -1,9 +1,11 @@
 {
     "name": "WorldLocking.Tools.Editor",
+    "rootNamespace": "",
     "references": [
         "Microsoft.MixedReality.WorldLocking.Core",
         "Microsoft.MixedReality.WorldLocking.Tools",
-        "Unity.XR.ARFoundation"
+        "Unity.XR.ARFoundation",
+        "Unity.XR.CoreUtils"
     ],
     "includePlatforms": [
         "Editor"

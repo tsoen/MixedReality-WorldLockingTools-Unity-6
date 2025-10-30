@@ -72,10 +72,10 @@ namespace Microsoft.MixedReality.WorldLocking.Core
                 }
                 if (anchorSubsystem == AnchorSubsystem.XRSDK)
                 {
-#if !WLT_ARSUBSYSTEMS_PRESENT
-                    Debug.LogWarning($"Setting Invalid: XRSDK selected, but no ARSUBSYSTEMS_PRESENT");
+#if !WLT_ARFOUNDATION_PRESENT
+                    Debug.LogWarning($"Setting Invalid: XRSDK selected, but no WLT_ARFOUNDATION_PRESENT");
                     return false;
-#endif // WLT_ARSUBSYSTEMS_PRESENT
+#endif // WLT_ARFOUNDATION_PRESENT
                 }
                 if (anchorSubsystem == AnchorSubsystem.WSA)
                 {
@@ -109,7 +109,7 @@ namespace Microsoft.MixedReality.WorldLocking.Core
         public GameObject ARSessionSource;
 
         /// <summary>
-        /// GameObject which has (or will have) the ARSessionOrigin component, required when using AR Foundation.
+        /// GameObject which has (or will have) the XROrigin component, required when using AR Foundation.
         /// </summary>
         /// <remarks>
         /// Ignored except when anchorSubsystem == ARF.

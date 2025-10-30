@@ -1,15 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-#if UNITY_WSA && !UNITY_2020_1_OR_NEWER
-#define WLT_ENABLE_LEGACY_WSA
-#endif
-
 using UnityEngine;
-#if WLT_ENABLE_LEGACY_WSA
-using UnityEngine.XR.WSA;
-using UnityEngine.XR.WSA.Persistence;
-#endif // WLT_ENABLE_LEGACY_WSA
 
 #pragma warning disable CS0618
 
@@ -39,11 +31,8 @@ namespace Microsoft.MixedReality.WorldLocking.Core
         public static float TrackingStartDelayTime = 0.3f;
 
         private float lastNotLocatedTime = float.NegativeInfinity;
-#if WLT_ENABLE_LEGACY_WSA
-        private WorldAnchor worldAnchor = null;
-#else
+
         private SpongyAnchor dummy = null;
-#endif // WLT_ENABLE_LEGACY_WSA
 
         /// <summary>
         /// Returns true if the anchor is reliably located. False might mean loss of tracking or not fully initialized.
@@ -55,11 +44,7 @@ namespace Microsoft.MixedReality.WorldLocking.Core
         {
             get
             {
-#if WLT_ENABLE_LEGACY_WSA
-                return worldAnchor != null && worldAnchor.isLocated;
-#else // WLT_ENABLE_LEGACY_WSA
                 return false;
-#endif // WLT_ENABLE_LEGACY_WSA
             }
         }
 
@@ -74,70 +59,12 @@ namespace Microsoft.MixedReality.WorldLocking.Core
         // Start is called before the first frame update
         private void Start ()
         {
-#if WLT_ENABLE_LEGACY_WSA
-            if (worldAnchor == null)
-            {
-                worldAnchor = gameObject.AddComponent<UnityEngine.XR.WSA.WorldAnchor>();
-            }
-#else
             dummy = this;
             if (IsSaved && lastNotLocatedTime > 0)
             {
                 IsSaved = false;
                 lastNotLocatedTime = float.NegativeInfinity;
             }
-#endif // WLT_ENABLE_LEGACY_WSA
         }
-
-#if WLT_ENABLE_LEGACY_WSA
-        // Update is called once per frame
-        private void Update ()
-        {
-            if (!IsReliablyLocated)
-            {
-                lastNotLocatedTime = Time.unscaledTime;
-            }
-        }
-#endif // WLT_ENABLE_LEGACY_WSA
-
-#if WLT_ENABLE_LEGACY_WSA
-
-        /// <summary>
-        /// Save to the anchor store, replacing any existing anchor (by name).
-        /// </summary>
-        /// <param name="store"></param>
-        public void Save (WorldAnchorStore store)
-        {
-            if (IsSaved)
-            {
-                return;
-            }
-            if (worldAnchor == null)
-            {
-                return;
-            }
-
-            store.Delete(name);
-            bool success = store.Save(name, worldAnchor);
-            Debug.Assert(success);
-            IsSaved = true;
-        }
-
-        /// <summary>
-        /// Load from the anchor store, losing whatever state was before load.
-        /// </summary>
-        /// <param name="store"></param>
-        /// <returns></returns>
-        public bool Load (WorldAnchorStore store)
-        {
-            if (worldAnchor)
-            {
-                Destroy(worldAnchor);
-            }
-            worldAnchor = store.Load(name, gameObject);
-            IsSaved = true;
-            return worldAnchor != null;
-        }
-#endif // WLT_ENABLE_LEGACY_WSA
     }
 }

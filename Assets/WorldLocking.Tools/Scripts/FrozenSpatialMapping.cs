@@ -3,15 +3,7 @@
 
 #pragma warning disable CS0618
 
-#if UNITY_WSA && !UNITY_2020_1_OR_NEWER
-#define WLT_ENABLE_LEGACY_WSA
-#endif
-
 using UnityEngine;
-#if WLT_ENABLE_LEGACY_WSA
-using UnityEngine.XR;
-using UnityEngine.XR.WSA;
-#endif // WLT_ENABLE_LEGACY_WSA
 using UnityEngine.Rendering;
 using UnityEngine.Assertions;
 using System;
@@ -50,13 +42,6 @@ namespace Microsoft.MixedReality.WorldLocking.Tools
             public BakedState currentState = BakedState.NeverBaked;
         }
 
-#if WLT_ENABLE_LEGACY_WSA
-        /// <summary>
-        /// Interface to spatial mapping
-        /// </summary>
-        private SurfaceObserver observer;
-#endif // WLT_ENABLE_LEGACY_WSA
-
         /// <summary>
         /// Store known surfaces by handle.
         /// </summary>
@@ -94,14 +79,7 @@ namespace Microsoft.MixedReality.WorldLocking.Tools
             set
             {
                 // Note that changing the value of display might not change the value of Display (if displayMat == null).
-                bool oldDisplay = Display;
                 display = value;
-                if (Display != oldDisplay)
-                {
-#if WLT_ENABLE_LEGACY_WSA
-                    ChangeDisplayState();
-#endif // WLT_ENABLE_LEGACY_WSA 
-                }
             }
         }
 
@@ -199,8 +177,7 @@ namespace Microsoft.MixedReality.WorldLocking.Tools
         /// Cached spatial mapping layer.
         /// </summary>
         private int spatialMappingLayer = -1;
-
-
+        
         private void Start()
         {
             spatialMappingLayer = LayerMask.NameToLayer("SpatialMapping");
@@ -210,263 +187,5 @@ namespace Microsoft.MixedReality.WorldLocking.Tools
                 updateCountdown = 0;
             }
         }
-
-        private void Setup()
-        {
-#if WLT_ENABLE_LEGACY_WSA
-            Debug.Assert(observer == null, "Setting up an already setup FrozenSpatialMapping");
-            observer = new SurfaceObserver();
-            observer.SetVolumeAsSphere(Vector3.zero, Radius);
-#endif // WLT_ENABLE_LEGACY_WSA
-        }
-
-        private void Teardown()
-        {
-#if WLT_ENABLE_LEGACY_WSA
-            Debug.Assert(observer != null, "Tearing down FrozenSpatialMapping that isn't set up.");
-            foreach (var surface in surfaces.Values)
-            {
-                Destroy(surface.surfaceObject);
-            }
-            surfaces.Clear();
-            observer.Dispose();
-            observer = null;
-#endif // WLT_ENABLE_LEGACY_WSA
-        }
-
-        private void Update()
-        {
-#if WLT_ENABLE_LEGACY_WSA
-            if (CheckState())
-            {
-                UpdateObserver();
-                UpdateSurfaces();
-            }
-#endif // WLT_ENABLE_LEGACY_WSA
-        }
-
-#if WLT_ENABLE_LEGACY_WSA
-        private bool CheckState()
-        {
-            if (Active)
-            {
-                if (observer == null)
-                {
-                    Setup();
-                }
-            }
-            else
-            {
-                if (observer != null)
-                {
-                    Teardown();
-                }
-            }
-            return Active;
-        }
-
-        private void UpdateSurfaces()
-        {
-            if (waitingForBake)
-            {
-                return;
-            }
-            SurfaceEntry bestSurface = FindBestSurfaceToBake();
-            if (bestSurface != null)
-            {
-                DispatchBakeRequest(bestSurface);
-            }
-        }
-
-
-        private void UpdateObserver()
-        {
-            updateCountdown -= Time.unscaledDeltaTime;
-            // Avoid calling Update on a SurfaceObserver too frequently.
-            if (updateCountdown <= 0.0f)
-            {
-                Vector3 frozenCenterPosition = CenterObject != null
-                    ? CenterObject.position 
-                    : Camera.main.transform.position;
-                Vector3 spongyCenterPosition = manager.SpongyFromFrozen.Multiply(frozenCenterPosition);
-                // The observer operates in Spongy space.
-                observer.SetVolumeAsSphere(spongyCenterPosition, Radius);
-
-                try
-                {
-                    observer.Update(SurfaceChangedHandler);
-                }
-                catch
-                {
-                    // Update can throw an exception if the specified callback is bad.
-                    Debug.Log("Observer update failed unexpectedly!");
-                }
-
-                updateCountdown = UpdatePeriod;
-            }
-        }
-
-        private SurfaceEntry FindBestSurfaceToBake()
-        {
-            // Prioritize older adds over other adds over updates.
-            SurfaceEntry bestSurface = null;
-            foreach (var surface in surfaces.Values)
-            {
-                if (surface.currentState != BakedState.Baked)
-                {
-                    if (bestSurface == null)
-                    {
-                        bestSurface = surface;
-                    }
-                    else
-                    {
-                        if (surface.currentState < bestSurface.currentState)
-                        {
-                            bestSurface = surface;
-                        }
-                        else if (surface.updateTime < bestSurface.updateTime)
-                        {
-                            bestSurface = surface;
-                        }
-                    }
-                }
-            }
-            return bestSurface;
-        }
-
-        /// <summary>
-        /// Fill out and dispatch a surface baking request.
-        /// </summary>
-        /// <param name="bestSurface">Info for the surface to bake.</param>
-        private void DispatchBakeRequest(SurfaceEntry bestSurface)
-        {
-            SurfaceData sd;
-            sd.id.handle = bestSurface.handle;
-            sd.outputMesh = bestSurface.surfaceObject.GetComponent<MeshFilter>();
-            // The WorldAnchor has been put on a generated child of the surface object.
-            sd.outputAnchor = bestSurface.worldAnchorChild.GetComponent<WorldAnchor>();
-            sd.outputCollider = bestSurface.surfaceObject.GetComponent<MeshCollider>();
-            sd.trianglesPerCubicMeter = TrianglesPerCubicMeter;
-            sd.bakeCollider = Collide;
-            try
-            {
-                if (observer.RequestMeshAsync(sd, SurfaceDataReadyHandler))
-                {
-                    waitingForBake = true;
-                }
-                else
-                {
-                    // A return value of false when requesting meshes 
-                    // typically indicates that the specified Surface handle is invalid.
-                    Debug.Log($"Bake request for {bestSurface.handle} failed, invalid parameters suspected");
-                }
-            }
-            catch
-            {
-                Debug.Log($"Bake for surface {bestSurface.handle} failed unexpectedly!");
-            }
-        }
-
-        /// <summary>
-        /// Go through all existing meshes and change their state to match the current display state.
-        /// This should only be called when the display state changes, not to verify match.
-        /// </summary>
-        private void ChangeDisplayState()
-        {
-            foreach(var entry in surfaces.Values)
-            {
-                var mr = entry.surfaceObject.GetComponent<MeshRenderer>();
-                mr.enabled = this.Display;
-            }
-        }
-
-        /// <summary>
-        /// This handler receives events when surfaces change, and propagates those events
-        /// using the SurfaceObserver’s Update method
-        /// </summary>
-        /// <param name="id">Handle identifying the surface</param>
-        /// <param name="changeType">Reason for update</param>
-        /// <param name="bounds">New bounds of th esurface</param>
-        /// <param name="updateTime">Time stamp of modification.</param>
-        private void SurfaceChangedHandler(SurfaceId id, SurfaceChange changeType, Bounds bounds, DateTime updateTime)
-        {
-            SurfaceEntry entry;
-            switch (changeType)
-            {
-                case SurfaceChange.Added:
-                case SurfaceChange.Updated:
-                    if (surfaces.TryGetValue(id.handle, out entry))
-                    {
-                        // If the system has already baked this Surface, lower its priority.
-                        if (entry.currentState == BakedState.Baked)
-                        {
-                            entry.currentState = BakedState.UpdatePostBake;
-                            entry.updateTime = updateTime;
-                        }
-                    }
-                    else
-                    {
-                        // This is a brand new Surface so create an entry for it.
-                        entry = new SurfaceEntry();
-                        entry.currentState = BakedState.NeverBaked;
-                        entry.updateTime = updateTime;
-                        entry.handle = id.handle;
-                        entry.surfaceObject = new GameObject(System.String.Format("Surface-{0}", id.handle));
-                        entry.surfaceObject.layer = spatialMappingLayer;
-                        if (HangerObject != null)
-                        {
-                            entry.surfaceObject.transform.SetParent(HangerObject, false);
-                        }
-                        entry.surfaceObject.AddComponent<MeshFilter>();
-                        if (Collide)
-                        {
-                            entry.surfaceObject.AddComponent<MeshCollider>();
-                        }
-                        MeshRenderer mr = entry.surfaceObject.AddComponent<MeshRenderer>();
-                        mr.shadowCastingMode = ShadowCastingMode.Off;
-                        mr.receiveShadows = false;
-                        mr.sharedMaterial = DrawMaterial;
-                        mr.enabled = this.Display;
-                        entry.worldAnchorChild = new GameObject(entry.surfaceObject.name + "WorldAnchor");
-                        entry.worldAnchorChild.transform.SetParent(entry.surfaceObject.transform, false);
-                        entry.worldAnchorChild.AddComponent<WorldAnchor>();
-                        // Add an adapter component to keep the surface object where the WorldAnchor means it to be.
-                        var adapter = entry.surfaceObject.AddComponent<WorldAnchorAdapter>();
-                        adapter.TargetObject = entry.surfaceObject.transform;
-                        adapter.WorldAnchorObject = entry.worldAnchorChild;
-                        surfaces[id.handle] = entry;
-                    }
-                    break;
-
-                case SurfaceChange.Removed:
-                    if (surfaces.TryGetValue(id.handle, out entry))
-                    {
-                        surfaces.Remove(id.handle);
-                        Destroy(entry.surfaceObject);
-                        // Note entry.worldAnchorChild is child of surfaceObject, so will get destroyed
-                        // along with components.
-                    }
-                    break;
-            }
-        }
-
-        private void SurfaceDataReadyHandler(SurfaceData sd, bool outputWritten, float elapsedBakeTimeSeconds)
-        {
-            waitingForBake = false;
-            SurfaceEntry entry;
-            if (surfaces.TryGetValue(sd.id.handle, out entry))
-            {
-                // Check SurfaceData consistency with the request data.
-                Assert.IsTrue(sd.outputMesh == entry.surfaceObject.GetComponent<MeshFilter>());
-                Assert.IsTrue(sd.outputAnchor == entry.worldAnchorChild.GetComponent<WorldAnchor>());
-                entry.currentState = BakedState.Baked;
-            }
-            else
-            {
-                Debug.Log(System.String.Format("Paranoia:  Couldn't find surface {0} after a bake!", sd.id.handle));
-                Assert.IsTrue(false);
-            }
-        }
-#endif // WLT_ENABLE_LEGACY_WSA
     }
 }

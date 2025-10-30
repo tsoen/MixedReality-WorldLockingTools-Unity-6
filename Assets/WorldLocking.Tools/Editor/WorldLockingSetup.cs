@@ -12,6 +12,7 @@ using UnityEngine.XR.ARFoundation;
 #endif // WLT_ARFOUNDATION_PRESENT
 
 using Microsoft.MixedReality.WorldLocking.Core;
+using Unity.XR.CoreUtils;
 
 namespace Microsoft.MixedReality.WorldLocking.Tools
 {
@@ -149,15 +150,15 @@ namespace Microsoft.MixedReality.WorldLocking.Tools
         {
 #if WLT_ARFOUNDATION_PRESENT
             ARSession session = GameObject.FindObjectOfType<ARSession>();
-            ARSessionOrigin sessionOrigin = GameObject.FindObjectOfType<ARSessionOrigin>();
+            XROrigin sessionOrigin = GameObject.FindObjectOfType<XROrigin>();
 
             if (session != null && sessionOrigin == null)
             {
-                Debug.LogError($"Found ARSession on {session.name}, but no ARSessionOrigin. Check ARFoundation configuration.");
+                Debug.LogError($"Found ARSession on {session.name}, but no XROrigin. Check ARFoundation configuration.");
             }
             if (session == null && sessionOrigin != null)
             {
-                Debug.LogError($"Found ARSessionOrigin on {sessionOrigin.name}, but no ARSession. Check ARFoundation configuration.");
+                Debug.LogError($"Found XROrigin on {sessionOrigin.name}, but no ARSession. Check ARFoundation configuration.");
             }
             if (session != null && sessionOrigin != null)
             {
@@ -179,10 +180,8 @@ namespace Microsoft.MixedReality.WorldLocking.Tools
 
             if (!ConfiguredForARF(context))
             {
-#if WLT_ARSUBSYSTEMS_PRESENT
+#if WLT_ARFOUNDATION_PRESENT
                 sharedSettings.anchorSettings.anchorSubsystem = AnchorSettings.AnchorSubsystem.XRSDK;
-#elif UNITY_WSA && !UNITY_2020_1_OR_NEWER
-                sharedSettings.anchorSettings.anchorSubsystem = AnchorSettings.AnchorSubsystem.WSA;
 #elif WLT_ARCORE_SDK_INCLUDED
                 sharedSettings.anchorSettings.anchorSubsystem = AnchorSettings.AnchorSubsystem.ARCore;
 #endif // WLT_ARCORE_SDK_INCLUDED

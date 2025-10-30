@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-#if UNITY_2020_1_OR_NEWER
-
-#if WLT_ARSUBSYSTEMS_PRESENT
+#if WLT_ARFOUNDATION_PRESENT
 
 #if WLT_MICROSOFT_WMR_XR_4_3_PRESENT && UNITY_WSA
 #define WLT_XR_PERSISTENCE
@@ -142,6 +140,4 @@ namespace Microsoft.MixedReality.WorldLocking.Core
     }
 }
 
-#endif // WLT_ARSUBSYSTEMS_PRESENT
-
-#endif // UNITY_2020_1_OR_NEWER
+#endif // WLT_ARFOUNDATION_PRESENT

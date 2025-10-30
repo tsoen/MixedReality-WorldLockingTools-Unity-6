@@ -524,6 +524,7 @@ namespace Microsoft.MixedReality.WorldLocking.Core
             {
                 DebugLogSetup($"Switching from {anchorSettings.anchorSubsystem} to AnchorSubsystem.Null because running in editor.");
                 anchorSettings.anchorSubsystem = AnchorSettings.AnchorSubsystem.Null;
+                shared.anchorSettings = anchorSettings;
             }
 #endif // UNITY_EDITOR
             DebugLogSetup($"Select {anchorSettings.anchorSubsystem} anchor manager.");
@@ -542,7 +543,7 @@ namespace Microsoft.MixedReality.WorldLocking.Core
                 Debug.LogError("Failed to create requested AR Foundation anchor manager!");
             }
 #endif // WLT_ARFOUNDATION_PRESENT
-#if WLT_ARSUBSYSTEMS_PRESENT
+#if WLT_ARFOUNDATION_PRESENT
             if (anchorSettings.anchorSubsystem == AnchorSettings.AnchorSubsystem.XRSDK)
             {
                 DebugLogSetup($"Trying to create XR anchor manager");
@@ -554,19 +555,7 @@ namespace Microsoft.MixedReality.WorldLocking.Core
                 }
                 Debug.LogError("Failed to create requested XR SDK anchor manager!");
             }
-#endif // WLT_ARSUBSYSTEMS_PRESENT
-#if UNITY_WSA && !UNITY_2020_1_OR_NEWER
-            if (anchorSettings.anchorSubsystem == AnchorSettings.AnchorSubsystem.WSA)
-            {
-                AnchorManagerWSA wsaAnchorManager = AnchorManagerWSA.TryCreate(plugin, headTracker);
-                if (wsaAnchorManager != null)
-                {
-                    DebugLogSetup("Success creating WSA anchor manager");
-                    return wsaAnchorManager;
-                }
-                Debug.LogError("Failed to create requested WSA anchor manager!");
-            }
-#endif // UNITY_WSA
+#endif // WLT_ARFOUNDATION_PRESENT
 #if WLT_ARCORE_SDK_INCLUDED
             if (anchorSettings.anchorSubsystem == AnchorSettings.AnchorSubsystem.ARCore)
             {
@@ -764,12 +753,12 @@ namespace Microsoft.MixedReality.WorldLocking.Core
                 AdjustmentFrame.SetLocalPose(PinnedFromLocked.Multiply(LockedFromPlayspace));
             }
 
-#if false && WLT_ARSUBSYSTEMS_PRESENT
+#if false && WLT_ARFOUNDATION_PRESENT
             if ((AdjustmentFrame.GetGlobalPose().position != Vector3.zero) || (AdjustmentFrame.GetGlobalPose().rotation != Quaternion.identity))
             {
                 Debug.Log($"WLT: Adj{AnchorManagerXR.DebugVector3("O=", AdjustmentFrame.GetGlobalPose().position)}, {AnchorManagerXR.DebugEuler("R=", AdjustmentFrame.GetGlobalPose().rotation.eulerAngles)}");
             }
-#endif // WLT_ARSUBSYSTEMS_PRESENT
+#endif // WLT_ARFOUNDATION_PRESENT
 
             AutoSaveTriggerHook();
         }
