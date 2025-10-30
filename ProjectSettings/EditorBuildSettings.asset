@@ -20,4 +20,11 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/WorldLocking.Examples/Scenes/SpacePinPartial.unity
     guid: 35915962443f8ce4a89e03bb68b09f9a
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: 2068353293ee87147afef5cf8992aeed,
+      type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 4360389b52815564095c76cd321b3827,
+      type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 7af38caed929cbc41ad2f73ab350b622,
+      type: 2}
+  m_UseUCBPForAssetBundles: 0
