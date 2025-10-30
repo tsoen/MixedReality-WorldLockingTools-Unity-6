@@ -31,16 +31,24 @@ namespace Microsoft.MixedReality.WorldLocking.Tests.Core
 
         public GameObject LoadBasicSceneRig()
         {
+#if UNITY_EDITOR
             var prefabRig = AssetDatabase.LoadMainAssetAtPath(testRootPath + "/Prefabs/CoreTestBasicSceneRig.prefab");
             GameObject rig = GameObject.Instantiate<GameObject>(prefabRig as GameObject);
             return rig;
+#else
+            return null;
+#endif
         }
 
         public GameObject LoadGameObject(string goPath)
         {
+#if UNITY_EDITOR
             var prefab = AssetDatabase.LoadMainAssetAtPath(testRootPath + "/" + goPath);
             GameObject go = GameObject.Instantiate<GameObject>(prefab as GameObject);
             return go;
+#else
+            return null;
+#endif
         }
         public T LoadComponentOnGameObject<T>(string goPath) where T : Object
         {

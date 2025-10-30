@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-#if UNITY_2020_1_OR_NEWER
-
 #if WLT_MICROSOFT_OPENXR_PRESENT || WLT_MICROSOFT_WMR_XR_4_3_PRESENT
 #define WLT_XR_PERSISTENCE
 #endif // WLT_XR_PERSISTENCE
@@ -20,7 +18,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.XR;
 
-#if WLT_ARSUBSYSTEMS_PRESENT
+#if WLT_ARFOUNDATION_PRESENT
 
 #if WLT_XR_MANAGEMENT_PRESENT
 using UnityEngine.XR.Management;
@@ -129,7 +127,7 @@ namespace Microsoft.MixedReality.WorldLocking.Core
         private static XRAnchorSubsystem FindAnchorManager()
         {
             List<XRAnchorSubsystem> anchorSubsystems = new List<XRAnchorSubsystem>();
-            SubsystemManager.GetInstances(anchorSubsystems);
+            SubsystemManager.GetSubsystems(anchorSubsystems);
             DebugLogSetup($"Found {anchorSubsystems.Count} anchor subsystems.");
             XRAnchorSubsystem activeSubsystem = null;
             int numFound = 0;
@@ -173,7 +171,7 @@ namespace Microsoft.MixedReality.WorldLocking.Core
         private static XRSessionSubsystem FindSessionSubsystem()
         {
             List<XRSessionSubsystem> sessionSubsystems = new List<XRSessionSubsystem>();
-            SubsystemManager.GetInstances(sessionSubsystems);
+            SubsystemManager.GetSubsystems(sessionSubsystems);
             DebugLogSetup($"Found {sessionSubsystems.Count} session subsystems");
             XRSessionSubsystem activeSession = null;
             int numFound = 0;
@@ -474,6 +472,4 @@ namespace Microsoft.MixedReality.WorldLocking.Core
         }
     }
 }
-#endif // WLT_ARSUBSYSTEMS_PRESENT
-
-#endif // UNITY_2020_1_OR_NEWER
+#endif // WLT_ARFOUNDATION_PRESENT

@@ -8,9 +8,9 @@
 #endif // WLT_DISABLE_LOGGING
 
 using UnityEngine;
-#if WLT_ARSUBSYSTEMS_PRESENT
+#if WLT_ARFOUNDATION_PRESENT
 using UnityEngine.XR.ARSubsystems;
-#endif // WLT_ARSUBSYSTEMS_PRESENT
+#endif // WLT_ARFOUNDATION_PRESENT
 
 namespace Microsoft.MixedReality.WorldLocking.Core
 {
@@ -23,11 +23,11 @@ namespace Microsoft.MixedReality.WorldLocking.Core
 
         private float lastNotLocatedTime = float.NegativeInfinity;
 
-#if WLT_ARSUBSYSTEMS_PRESENT
+#if WLT_ARFOUNDATION_PRESENT
         private TrackableId trackableId = TrackableId.invalidId;
 
         public TrackableId TrackableId { get { return trackableId; } set { trackableId = value; } }
-#endif // WLT_ARSUBSYSTEMS_PRESENT
+#endif // WLT_ARFOUNDATION_PRESENT
 
         /// <summary>
         /// Whether the anchor is being tracked reliably. 

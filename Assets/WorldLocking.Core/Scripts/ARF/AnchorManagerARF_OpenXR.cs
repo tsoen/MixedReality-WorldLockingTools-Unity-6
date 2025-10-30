@@ -7,11 +7,7 @@
 #undef WLT_EXTRA_LOGGING
 #endif // WLT_DISABLE_LOGGING
 
-#if UNITY_2020_1_OR_NEWER
-
-#if UNITY_2020_4_OR_NEWER
 #define WLT_ADD_ANCHOR_COMPONENT
-#endif // UNITY_2020_4_OR_NEWER
 
 #if WLT_ARFOUNDATION_PRESENT
 
@@ -230,5 +226,3 @@ namespace Microsoft.MixedReality.WorldLocking.Core
 }
 
 #endif // WLT_ARFOUNDATION_PRESENT
-
-#endif // UNITY_2020_1_OR_NEWER
